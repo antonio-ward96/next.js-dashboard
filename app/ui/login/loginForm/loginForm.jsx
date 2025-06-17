@@ -1,21 +1,32 @@
-"use client";
-
-import { authenticate } from "@/app/lib/actions";
-import styles from "./loginForm.module.css";
+'use client'
 import { useFormState } from "react-dom";
+import { authenticate } from "@/app/lib/actions";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import styles from "./loginForm.module.css";
 
-const LoginForm = () => {
-  const [state, formAction] = useFormState(authenticate, undefined);
+export default function LoginForm() {
+  const [state, formAction] = useFormState(authenticate, {});
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state?.success) {
+      router.replace('/dashboard');
+    }
+  }, [state, router]);
 
   return (
     <form action={formAction} className={styles.form}>
       <h1>Login</h1>
+      
       <input type="text" placeholder="username" name="username" />
       <input type="password" placeholder="password" name="password" />
+
       <button>Login</button>
-      {state && state}
+
+      {state?.error && (
+        <p className={styles.error}>{state.error}</p>
+      )}
     </form>
   );
-};
-
-export default LoginForm;
+}

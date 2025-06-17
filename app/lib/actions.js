@@ -155,14 +155,19 @@ export const deleteProduct = async (formData) => {
 };
 
 export const authenticate = async (prevState, formData) => {
-  const { username, password } = Object.fromEntries(formData);
-
   try {
-    await signIn("credentials", { username, password });
-  } catch (err) {
-    if (err.message.includes("CredentialsSignin")) {
-      return "Wrong Credentials";
+    const result = await signIn('credentials', {
+      username: formData.get('username'),
+      password: formData.get('password'),
+      redirect: false
+    });
+
+    if (result?.error) {
+      return { error: "wrong username or password" };
     }
-    throw err;
+
+    return { success: true };
+  } catch (error) {
+    return { error: "Wrong Credentials" };
   }
 };
