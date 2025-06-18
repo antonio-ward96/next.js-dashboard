@@ -168,6 +168,6 @@ export const authenticate = async (prevState, formData) => {
 
     return { success: true };
   } catch (error) {
-    return { error: "Wrong Credentials" };
+    return { error: "wrong username or passwor" };
   }
 };
