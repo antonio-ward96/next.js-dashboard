@@ -1,3 +1,4 @@
+/* global Promise */
 import { Product, User } from "./models";
 import { connectToDB } from "./utils";
 
