@@ -1,28 +1,27 @@
+import { User } from "@/app/lib/models";
+import bcryptjs from 'bcryptjs';
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { authConfig } from "./authconfig";
-import { connectToDB } from "./lib/utils";
-import { User } from "./lib/models";
-import bcrypt from "bcrypt";
+import { connectToDB } from "@/app/lib/utils";
 
 const login = async (credentials) => {
   try {
-    connectToDB();
+    await connectToDB();
+    
     const user = await User.findOne({ username: credentials.username });
+    if (!user) throw new Error("Wrong credentials!");
 
-    if (!user || !user.isAdmin) throw new Error("Wrong user or user is not exist!");
-
-    const isPasswordCorrect = await bcrypt.compare(
+    const isPasswordCorrect = await bcryptjs.compare(
       credentials.password,
       user.password
     );
-
-    if (!isPasswordCorrect) throw new Error("Wrong password!");
+    if (!isPasswordCorrect) throw new Error("Wrong credentials!");
 
     return user;
   } catch (err) {
-    console.log(err);
-    throw new Error("Failed to login!");
+    console.error("Login error:", err);
+    return null;
   }
 };
 
@@ -31,19 +30,15 @@ export const { signIn, signOut, auth } = NextAuth({
   providers: [
     CredentialsProvider({
       async authorize(credentials) {
-        try {
-          const user = await login(credentials);
-          return user;
-        } catch (err) {
-          return null;
-        }
+        return await login(credentials);
       },
     }),
   ],
-  // ADD ADDITIONAL INFORMATION TO SESSION
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
+        token.isAdmin = user.isAdmin;
         token.username = user.username;
         token.img = user.img;
       }
@@ -51,6 +46,8 @@ export const { signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (token) {
+        session.user.id = token.id;
+        session.user.isAdmin = token.isAdmin;
         session.user.username = token.username;
         session.user.img = token.img;
       }

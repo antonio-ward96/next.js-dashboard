@@ -1,15 +1,21 @@
 export const authConfig = {
-  providers:[],
+  providers: [],
   pages: {
     signIn: "/login",
   },
   callbacks: {
     authorized({ auth, request }) {
       const isLoggedIn = auth?.user;
+      const isAdmin = auth?.user?.isAdmin;
       const isOnDashboard = request.nextUrl.pathname.startsWith("/dashboard");
+
+      // حماية مسارات الأدمن
+      if (request.nextUrl.pathname.startsWith("/dashboard/users") && !isAdmin) {
+        return false; // سيتم توجيهه إلى صفحة تسجيل الدخول
+      }
+
       if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false;
+        return isLoggedIn;
       } else if (isLoggedIn) {
         return Response.redirect(new URL("/dashboard", request.nextUrl));
       }
