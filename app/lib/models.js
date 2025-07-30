@@ -19,7 +19,8 @@ const productSchema = new mongoose.Schema({
   stock: { type: Number, required: true, min: 0 },
   img: { type: String },
   color: { type: String },
-  size: { type: String }
+  size: { type: String },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
 // إنشاء النماذج مباشرة بعد الاتصال

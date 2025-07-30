@@ -6,6 +6,7 @@ import { connectToDB } from "./utils";
 import { redirect } from "next/navigation";
 import bcryptjs from "bcryptjs";
 import { signIn } from "../auth";
+import { auth } from "../auth";
 
 export const addUser = async (formData) => {
   const { username, email, password, phone, address, isAdmin, isActive } =
@@ -76,6 +77,11 @@ export const addProduct = async (formData) => {
   try {
     connectToDB();
 
+    const session = await auth();
+    if (!session || !session.user) {
+      throw new Error("Unauthorized access!");
+    }
+
     const newProduct = new Product({
       title,
       desc,
@@ -83,6 +89,7 @@ export const addProduct = async (formData) => {
       stock,
       color,
       size,
+      userId: session.user.id
     });
 
     await newProduct.save();
@@ -145,6 +152,24 @@ export const deleteProduct = async (formData) => {
 
   try {
     connectToDB();
+    const session = await auth();
+    
+    if (!session?.user) {
+      throw new Error("Unauthorized access!");
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      throw new Error("Product not found!");
+    }
+
+    const isOwner = product.userId?.toString() === session.user.id;
+    const isAdmin = session.user.isAdmin;
+
+    if (!isAdmin && !isOwner) {
+      throw new Error("You don't have permission to delete this product");
+    }
+
     await Product.findByIdAndDelete(id);
   } catch (err) {
     console.log(err);
