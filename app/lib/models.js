@@ -23,9 +23,7 @@ const productSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
-// إنشاء النماذج مباشرة بعد الاتصال
 const User = mongoose.models?.User || mongoose.model("User", userSchema);
 const Product = mongoose.models?.Product || mongoose.model("Product", productSchema);
 
-// تصدير النماذج
 export { User, Product };
